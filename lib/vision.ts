@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 export interface CardData {
+  [key: string]: string | null | undefined
   business_name?: string | null
   decision_maker_name?: string | null
   title?: string | null

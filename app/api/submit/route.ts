@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { parseBusinessCard } from '@/lib/vision'
+import { parseBusinessCard, CardData } from '@/lib/vision'
 import { findContactByPhone, createContact, updateContact, addTag, addNote } from '@/lib/ghl'
 import { supabase } from '@/lib/supabase'
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       notes: (formData.get('notes') as string) || '',
     }
 
-    let ai: Record<string, string | null | undefined> = {}
+    let ai: CardData = {}
     const photoFile = formData.get('photo') as File | null
     if (photoFile && photoFile.size > 0) {
       const bytes = await photoFile.arrayBuffer()
