@@ -131,6 +131,7 @@ export default function LeadForm() {
             <option value="Cold">❄️ Cold</option>
             <option value="Warm">🔥 Warm</option>
             <option value="Hot">🚨 Hot</option>
+            <option value="Networking">🤝 Networking</option>
           </select>
         </div>
 

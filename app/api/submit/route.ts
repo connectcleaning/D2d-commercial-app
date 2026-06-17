@@ -7,6 +7,7 @@ const TAG_MAP: Record<string, string> = {
   Cold: 'new-cold-commercial-lead',
   Warm: 'new-warm-commercial-lead',
   Hot: 'new-hot-commercial-lead',
+  Networking: 'b2b-network-contact',
 }
 
 function clean(obj: Record<string, string>): Record<string, string> {
