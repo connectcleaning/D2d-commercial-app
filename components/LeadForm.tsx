@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type AppMode = 'choose' | 'single' | 'bulk'
+type AppMode = 'single' | 'bulk'
 
 interface SingleForm {
   business_name: string
@@ -90,7 +90,7 @@ function newBulkItem(file: File): BulkItem {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LeadForm() {
-  const [mode, setMode] = useState<AppMode>('choose')
+  const [mode, setMode] = useState<AppMode>('single')
 
   // Single mode
   const [form, setForm] = useState<SingleForm>(emptyForm)
@@ -259,32 +259,6 @@ export default function LeadForm() {
     setBulkDone(true)
   }
 
-  // ── Render: Mode chooser ─────────────────────────────────────────────────────
-
-  if (mode === 'choose') {
-    return (
-      <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-4">
-        <p className="text-gray-500 text-sm text-center">What would you like to do?</p>
-        <button
-          onClick={() => setMode('single')}
-          className="w-full bg-blue-900 hover:bg-blue-800 text-white rounded-xl py-5 flex flex-col items-center gap-1 transition-colors"
-        >
-          <span className="text-2xl">👤</span>
-          <span className="font-semibold text-lg">Single Lead</span>
-          <span className="text-blue-200 text-sm">One contact — upload multiple photos (front/back, sticky note)</span>
-        </button>
-        <button
-          onClick={() => setMode('bulk')}
-          className="w-full bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-5 flex flex-col items-center gap-1 transition-colors"
-        >
-          <span className="text-2xl">📋</span>
-          <span className="font-semibold text-lg">Bulk Import</span>
-          <span className="text-gray-300 text-sm">Multiple contacts — one photo per lead, review before submitting</span>
-        </button>
-      </div>
-    )
-  }
-
   // ── Render: Bulk mode ─────────────────────────────────────────────────────────
 
   if (mode === 'bulk') {
@@ -293,7 +267,7 @@ export default function LeadForm() {
         <input ref={bulkUploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBulkPhotoChange} />
 
         <div className="flex items-center justify-between">
-          <button onClick={() => { setMode('choose'); clearBulk() }} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">← Back</button>
+          <button onClick={() => { setMode('single'); clearBulk() }} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">← Back</button>
           <h2 className="text-gray-900 font-semibold">Bulk Import</h2>
           <div className="w-10" />
         </div>
@@ -431,7 +405,7 @@ export default function LeadForm() {
                 <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm font-medium text-center">
                   {bulkItems.filter(i => i.submitStatus === 'success').length} of {bulkItems.length} contacts added to GHL ✓
                 </div>
-                <button onClick={() => { clearBulk(); setMode('choose') }} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
+                <button onClick={() => { clearBulk(); setMode('single') }} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
                   Done
                 </button>
               </div>
@@ -448,12 +422,6 @@ export default function LeadForm() {
     <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-6">
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleSinglePhotoChange} />
       <input ref={uploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleSinglePhotoChange} />
-
-      <div className="flex items-center justify-between">
-        <button onClick={() => { setMode('choose'); setForm(emptyForm); setSinglePhotos([]); setSinglePreviews([]) }} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">← Back</button>
-        <h2 className="text-gray-900 font-semibold">Single Lead</h2>
-        <div className="w-10" />
-      </div>
 
       {banner && (
         <div className={`rounded-lg px-4 py-3 text-sm font-medium ${banner.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
@@ -551,6 +519,16 @@ export default function LeadForm() {
             </span>
           ) : 'Submit Lead →'}
         </button>
+
+        <div className="border-t border-gray-100 pt-4">
+          <button
+            type="button"
+            onClick={() => setMode('bulk')}
+            className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-gray-600 py-2 text-sm transition-colors"
+          >
+            <span>📋</span> Bulk Import multiple contacts
+          </button>
+        </div>
       </form>
     </div>
   )
