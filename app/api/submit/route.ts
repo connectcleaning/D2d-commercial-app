@@ -32,13 +32,30 @@ export async function POST(req: NextRequest) {
       notes: (formData.get('notes') as string) || '',
     }
 
+    // Collect all photos (single photo or multiple: photo_0, photo_1, ...)
+    const photoFiles: File[] = []
+    const single = formData.get('photo') as File | null
+    if (single && single.size > 0) photoFiles.push(single)
+    for (let i = 0; i < 10; i++) {
+      const f = formData.get(`photo_${i}`) as File | null
+      if (f && f.size > 0) photoFiles.push(f)
+    }
+
+    // Extract from all photos in parallel, merge results (first non-null value wins)
     let ai: CardData = {}
-    const photoFile = formData.get('photo') as File | null
-    if (photoFile && photoFile.size > 0) {
-      const bytes = await photoFile.arrayBuffer()
-      const base64 = Buffer.from(bytes).toString('base64')
-      const mediaType = photoFile.type || 'image/jpeg'
-      ai = await parseBusinessCard(base64, mediaType)
+    if (photoFiles.length > 0) {
+      const results = await Promise.all(photoFiles.map(async (file) => {
+        const bytes = await file.arrayBuffer()
+        const base64 = Buffer.from(bytes).toString('base64')
+        const mediaType = file.type || 'image/jpeg'
+        return parseBusinessCard(base64, mediaType)
+      }))
+      // Merge: first non-null value across all photos wins
+      for (const result of results) {
+        for (const key of Object.keys(result) as (keyof CardData)[]) {
+          if (!ai[key] && result[key]) ai[key] = result[key]
+        }
+      }
     }
 
     const merged = {
