@@ -295,8 +295,9 @@ export default function LeadForm() {
             <div className="space-y-2">
               {bulkItems.map(item => (
                 <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
-                  <div className="flex items-center gap-3 p-3">
-                    <img src={item.preview} alt="" className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                  {/* Top row: photo + name/company + delete */}
+                  <div className="flex items-center gap-3 p-3 pb-2">
+                    <img src={item.preview} alt="" className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       {item.analyzing ? (
                         <div className="flex items-center gap-2 text-gray-400 text-sm">
@@ -308,31 +309,35 @@ export default function LeadForm() {
                         </div>
                       ) : (
                         <>
-                          <p className="text-gray-900 text-sm font-medium truncate">{item.decision_maker_name || <span className="text-gray-400 italic">No name found</span>}</p>
-                          <p className="text-gray-500 text-xs truncate">{item.business_name || <span className="italic">No company found</span>}</p>
+                          <p className="text-gray-900 text-base font-semibold leading-tight">{item.decision_maker_name || <span className="text-gray-400 italic font-normal text-sm">No name found</span>}</p>
+                          <p className="text-gray-500 text-sm leading-tight mt-0.5">{item.business_name || <span className="italic text-gray-400">No company found</span>}</p>
                         </>
                       )}
                     </div>
-                    {item.submitStatus === 'success' && <span className="text-green-500 text-lg flex-shrink-0">✓</span>}
+                    {item.submitStatus === 'success' && <span className="text-green-500 text-xl flex-shrink-0">✓</span>}
                     {item.submitStatus !== 'success' && !bulkDone && (
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <select
-                          value={item.lead_status}
-                          onChange={e => updateBulkItem(item.id, 'lead_status', e.target.value)}
-                          className="bg-white border border-gray-300 text-gray-900 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-800"
-                        >
-                          {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                        </select>
-                        <button
-                          onClick={() => toggleEdit(item.id)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${item.isEditing ? 'bg-blue-900 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-                        >
-                          {item.isEditing ? 'Done' : 'Edit'}
-                        </button>
-                        <button onClick={() => removeBulkItem(item.id)} className="text-gray-400 hover:text-red-500 text-lg leading-none transition-colors">×</button>
-                      </div>
+                      <button onClick={() => removeBulkItem(item.id)} className="text-gray-300 hover:text-red-500 text-2xl leading-none transition-colors flex-shrink-0">×</button>
                     )}
                   </div>
+
+                  {/* Bottom row: status + edit */}
+                  {item.submitStatus !== 'success' && !bulkDone && !item.analyzing && (
+                    <div className="flex items-center gap-2 px-3 pb-3">
+                      <select
+                        value={item.lead_status}
+                        onChange={e => updateBulkItem(item.id, 'lead_status', e.target.value)}
+                        className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-800"
+                      >
+                        {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                      <button
+                        onClick={() => toggleEdit(item.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${item.isEditing ? 'bg-blue-900 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                      >
+                        {item.isEditing ? 'Done' : 'Edit'}
+                      </button>
+                    </div>
+                  )}
 
                   {item.isEditing && (
                     <div className="border-t border-gray-200 p-3 space-y-3">
