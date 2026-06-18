@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
-      <body className="bg-slate-900 min-h-screen text-slate-100">
+      <body className="bg-gray-100 min-h-screen text-gray-900">
         {children}
       </body>
     </html>

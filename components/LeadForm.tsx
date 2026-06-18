@@ -247,14 +247,14 @@ export default function LeadForm() {
 
   // ── Styles ───────────────────────────────────────────────────────────────────
 
-  const inputClass = 'w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400'
-  const labelClass = 'block text-sm font-medium text-slate-400 mb-1'
-  const smallInputClass = 'w-full bg-slate-600 border border-slate-500 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400'
+  const inputClass = 'w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent placeholder-gray-400'
+  const labelClass = 'block text-sm font-medium text-gray-600 mb-1'
+  const smallInputClass = 'w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent placeholder-gray-400'
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-slate-800 rounded-2xl ring-1 ring-slate-700 p-6 space-y-6">
+    <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-6">
 
       {/* Hidden inputs */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoChange} />
@@ -264,15 +264,15 @@ export default function LeadForm() {
       {isBulk ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-semibold text-lg">{bulkItems.length} card{bulkItems.length !== 1 ? 's' : ''} to import</h2>
-            <button onClick={clearBulk} className="text-slate-400 hover:text-red-400 text-sm transition-colors">✕ Clear all</button>
+            <h2 className="text-gray-900 font-semibold text-lg">{bulkItems.length} card{bulkItems.length !== 1 ? 's' : ''} to import</h2>
+            <button onClick={clearBulk} className="text-gray-400 hover:text-red-500 text-sm transition-colors">✕ Clear all</button>
           </div>
 
           {/* Add more photos */}
           {!bulkDone && (
             <button
               onClick={() => uploadRef.current?.click()}
-              className="w-full border border-dashed border-slate-600 hover:border-blue-500 text-slate-400 hover:text-blue-400 rounded-lg py-3 text-sm transition-colors"
+              className="w-full border border-dashed border-gray-300 hover:border-blue-700 text-gray-400 hover:text-blue-700 rounded-lg py-3 text-sm transition-colors"
             >
               + Add more photos
             </button>
@@ -281,7 +281,7 @@ export default function LeadForm() {
           {/* Card list */}
           <div className="space-y-2">
             {bulkItems.map(item => (
-              <div key={item.id} className="bg-slate-700 rounded-xl overflow-hidden">
+              <div key={item.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
 
                 {/* Row */}
                 <div className="flex items-center gap-3 p-3">
@@ -291,7 +291,7 @@ export default function LeadForm() {
                   {/* Name / company */}
                   <div className="flex-1 min-w-0">
                     {item.analyzing ? (
-                      <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <div className="flex items-center gap-2 text-gray-400 text-sm">
                         <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 8 4.673 8 12h4z" />
@@ -300,10 +300,10 @@ export default function LeadForm() {
                       </div>
                     ) : (
                       <>
-                        <p className="text-white text-sm font-medium truncate">
+                        <p className="text-gray-900 text-sm font-medium truncate">
                           {item.decision_maker_name || <span className="text-slate-400 italic">No name</span>}
                         </p>
-                        <p className="text-slate-400 text-xs truncate">
+                        <p className="text-gray-500 text-xs truncate">
                           {item.business_name || <span className="italic">No company</span>}
                         </p>
                       </>
@@ -325,7 +325,7 @@ export default function LeadForm() {
                       <select
                         value={item.lead_status}
                         onChange={e => updateBulkItem(item.id, 'lead_status', e.target.value)}
-                        className="bg-slate-600 border border-slate-500 text-white rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="bg-white border border-gray-300 text-gray-900 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         {STATUS_OPTIONS.map(o => (
                           <option key={o.value} value={o.value}>{o.label}</option>
@@ -335,7 +335,7 @@ export default function LeadForm() {
                       {/* Edit button */}
                       <button
                         onClick={() => toggleEdit(item.id)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${item.isEditing ? 'bg-blue-600 text-white' : 'bg-slate-600 hover:bg-slate-500 text-slate-200'}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${item.isEditing ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
                       >
                         {item.isEditing ? 'Done' : 'Edit'}
                       </button>
@@ -343,7 +343,7 @@ export default function LeadForm() {
                       {/* Remove */}
                       <button
                         onClick={() => removeBulkItem(item.id)}
-                        className="text-slate-500 hover:text-red-400 text-lg leading-none transition-colors"
+                        className="text-gray-400 hover:text-red-500 text-lg leading-none transition-colors"
                       >
                         ×
                       </button>
@@ -353,46 +353,46 @@ export default function LeadForm() {
 
                 {/* Inline edit panel */}
                 {item.isEditing && (
-                  <div className="border-t border-slate-600 p-3 space-y-3">
+                  <div className="border-t border-gray-200 p-3 space-y-3">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Name</label>
+                        <label className="block text-xs text-gray-500 mb-1">Name</label>
                         <input type="text" value={item.decision_maker_name} onChange={e => updateBulkItem(item.id, 'decision_maker_name', e.target.value)} placeholder="Decision maker" className={smallInputClass} />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Company</label>
+                        <label className="block text-xs text-gray-500 mb-1">Company</label>
                         <input type="text" value={item.business_name} onChange={e => updateBulkItem(item.id, 'business_name', e.target.value)} placeholder="Business name" className={smallInputClass} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Title</label>
+                        <label className="block text-xs text-gray-500 mb-1">Title</label>
                         <input type="text" value={item.title} onChange={e => updateBulkItem(item.id, 'title', e.target.value)} placeholder="Title" className={smallInputClass} />
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-400 mb-1">Phone</label>
+                        <label className="block text-xs text-gray-500 mb-1">Phone</label>
                         <input type="tel" value={item.phone} onChange={e => updateBulkItem(item.id, 'phone', e.target.value)} placeholder="Phone" className={smallInputClass} />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Email</label>
+                      <label className="block text-xs text-gray-500 mb-1">Email</label>
                       <input type="email" value={item.email} onChange={e => updateBulkItem(item.id, 'email', e.target.value)} placeholder="Email" className={smallInputClass} />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Notes</label>
+                      <label className="block text-xs text-gray-500 mb-1">Notes</label>
                       <textarea value={item.notes} onChange={e => updateBulkItem(item.id, 'notes', e.target.value)} placeholder="Notes..." rows={2} className={smallInputClass + ' resize-none'} />
                     </div>
                     <div className="grid grid-cols-5 gap-2">
                       <div className="col-span-3">
-                        <label className="block text-xs text-slate-400 mb-1">City</label>
+                        <label className="block text-xs text-gray-500 mb-1">City</label>
                         <input type="text" value={item.city} onChange={e => updateBulkItem(item.id, 'city', e.target.value)} placeholder="City" className={smallInputClass} />
                       </div>
                       <div className="col-span-1">
-                        <label className="block text-xs text-slate-400 mb-1">State</label>
+                        <label className="block text-xs text-gray-500 mb-1">State</label>
                         <input type="text" value={item.state} onChange={e => updateBulkItem(item.id, 'state', e.target.value)} placeholder="FL" className={smallInputClass} />
                       </div>
                       <div className="col-span-1">
-                        <label className="block text-xs text-slate-400 mb-1">Zip</label>
+                        <label className="block text-xs text-gray-500 mb-1">Zip</label>
                         <input type="text" value={item.zip} onChange={e => updateBulkItem(item.id, 'zip', e.target.value)} placeholder="32801" className={smallInputClass} />
                       </div>
                     </div>
@@ -407,7 +407,7 @@ export default function LeadForm() {
             <button
               onClick={handleBulkSubmit}
               disabled={bulkSubmitting || bulkItems.every(i => i.analyzing)}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors"
+              className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-blue-900 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors"
             >
               {bulkSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -424,7 +424,7 @@ export default function LeadForm() {
               <div className="bg-green-900/50 border border-green-700 text-green-300 rounded-lg px-4 py-3 text-sm font-medium text-center">
                 {bulkItems.filter(i => i.submitStatus === 'success').length} of {bulkItems.length} contacts added to GHL ✓
               </div>
-              <button onClick={clearBulk} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors">
+              <button onClick={clearBulk} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
                 Start New Batch
               </button>
             </div>
@@ -446,23 +446,23 @@ export default function LeadForm() {
             {singlePreview ? (
               <div className="flex items-center gap-4">
                 <img src={singlePreview} alt="Preview" className="w-24 h-24 object-cover rounded-xl border border-slate-600" />
-                <button type="button" onClick={() => { setSinglePhoto(null); setSinglePreview(null) }} className="text-slate-400 hover:text-red-400 text-sm transition-colors">
+                <button type="button" onClick={() => { setSinglePhoto(null); setSinglePreview(null) }} className="text-gray-400 hover:text-red-500 text-sm transition-colors">
                   × Remove photo
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <button type="button" onClick={() => cameraRef.current?.click()}
-                  className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg py-4 text-slate-200 font-medium transition-colors">
+                  className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg py-4 text-gray-700 font-medium transition-colors">
                   <span className="text-xl">📷</span> Take Photo
                 </button>
                 <button type="button" onClick={() => uploadRef.current?.click()}
-                  className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg py-4 text-slate-200 font-medium transition-colors">
+                  className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg py-4 text-gray-700 font-medium transition-colors">
                   <span className="text-xl">📁</span> Upload
                 </button>
               </div>
             )}
-            <p className="text-slate-500 text-xs mt-2">Tip: select multiple photos to bulk import</p>
+            <p className="text-gray-400 text-xs mt-2">Tip: select multiple photos to bulk import</p>
           </div>
 
           <form onSubmit={handleSingleSubmit} className="space-y-4">
@@ -515,7 +515,7 @@ export default function LeadForm() {
               <textarea name="notes" value={form.notes} onChange={handleSingleChange} placeholder="Call back Thursday, interested in weekly service..." rows={3} className={inputClass + ' resize-none'} />
             </div>
             <button type="submit" disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors mt-2">
+              className="w-full bg-blue-900 hover:bg-blue-800 disabled:bg-blue-900 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors mt-2">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">

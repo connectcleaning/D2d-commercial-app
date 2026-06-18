@@ -1,12 +1,15 @@
 import LeadForm from '@/components/LeadForm'
+import Image from 'next/image'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-900 py-8 px-4">
+    <main className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-lg mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">D2D Commercial Leads</h1>
-          <p className="text-slate-400">Capture leads fast, in the field.</p>
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-4">
+            <Image src="/logo.png" alt="Connect Cleaning" width={240} height={80} priority />
+          </div>
+          <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">Commercial Lead Capture</p>
         </div>
         <LeadForm />
       </div>
