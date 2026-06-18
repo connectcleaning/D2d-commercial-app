@@ -407,9 +407,39 @@ export default function LeadForm() {
               </button>
             ) : (
               <div className="space-y-3">
+                {/* Summary */}
                 <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm font-medium text-center">
                   {bulkItems.filter(i => i.submitStatus === 'success').length} of {bulkItems.length} contacts added to GHL ✓
                 </div>
+
+                {/* Failed items */}
+                {bulkItems.filter(i => i.submitStatus === 'error').length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-red-600 text-sm font-medium">Failed — tap Edit to fix and retry:</p>
+                    {bulkItems.filter(i => i.submitStatus === 'error').map(item => (
+                      <div key={item.id} className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-3">
+                        <img src={item.preview} alt="" className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-gray-900 text-sm font-medium">{item.decision_maker_name || item.business_name || 'Unknown'}</p>
+                          <p className="text-red-500 text-xs mt-0.5">{item.errorMsg || 'Upload failed'}</p>
+                        </div>
+                        <button
+                          onClick={() => { setBulkDone(false); toggleEdit(item.id) }}
+                          className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => { setBulkDone(false); handleBulkSubmit() }}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-xl transition-colors text-sm"
+                    >
+                      Retry All Failed →
+                    </button>
+                  </div>
+                )}
+
                 <button onClick={() => { clearBulk(); setMode('single') }} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
                   Done
                 </button>
