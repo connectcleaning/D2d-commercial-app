@@ -224,10 +224,11 @@ export default function LeadForm() {
 
   async function handleBulkSubmit() {
     setBulkSubmitting(true)
-    for (const item of bulkItems) {
-      if (item.submitStatus === 'success') continue
+    const pending = bulkItems.filter(i => i.submitStatus !== 'success')
+
+    await Promise.all(pending.map(async (item) => {
+      // No photo sent — data already extracted and reviewed by user
       const fd = new FormData()
-      fd.append('photo_0', item.file)
       fd.append('lead_status', item.lead_status)
       fd.append('business_name', item.business_name)
       fd.append('decision_maker_name', item.decision_maker_name)
@@ -254,7 +255,8 @@ export default function LeadForm() {
           it.id !== item.id ? it : { ...it, submitStatus: 'error', errorMsg: 'Network error' }
         ))
       }
-    }
+    }))
+
     setBulkSubmitting(false)
     setBulkDone(true)
   }
