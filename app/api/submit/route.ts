@@ -60,17 +60,22 @@ export async function POST(req: NextRequest) {
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
-    const contactPayload = clean({
-      firstName,
-      lastName,
-      email: merged.email,
-      phone: merged.phone,
-      address1: merged.address,
-      city: merged.city,
-      state: merged.state,
-      postalCode: merged.zip,
-      companyName: merged.business_name,
-    })
+    const contactPayload = {
+      fields: clean({
+        firstName,
+        lastName,
+        email: merged.email,
+        phone: merged.phone,
+        address1: merged.address,
+        city: merged.city,
+        state: merged.state,
+        postalCode: merged.zip,
+        companyName: merged.business_name,
+      }),
+      customFields: merged.title
+        ? [{ key: 'contact.title', field_value: merged.title }]
+        : [],
+    }
 
     let contactId: string | null = null
     if (merged.phone) {
@@ -88,7 +93,6 @@ export async function POST(req: NextRequest) {
       await addTag(contactId, tag)
 
       const noteParts: string[] = []
-      if (merged.title) noteParts.push(`Title: ${merged.title}`)
       if (merged.manual_notes) noteParts.push(merged.manual_notes)
       if (merged.ai_notes) noteParts.push(`[From photo] ${merged.ai_notes}`)
 

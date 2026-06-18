@@ -18,21 +18,33 @@ export async function findContactByPhone(phone: string): Promise<string | null> 
   return data.contact?.id ?? null
 }
 
-export async function createContact(payload: Record<string, string>): Promise<string | null> {
+interface ContactPayload {
+  fields: Record<string, string>
+  customFields?: { key: string; field_value: string }[]
+}
+
+export async function createContact(payload: ContactPayload): Promise<string | null> {
   const res = await fetch(`${GHL_BASE}/contacts/`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ ...payload, locationId: process.env.GHL_LOCATION_ID! }),
+    body: JSON.stringify({
+      ...payload.fields,
+      locationId: process.env.GHL_LOCATION_ID!,
+      ...(payload.customFields?.length ? { customFields: payload.customFields } : {}),
+    }),
   })
   const data = await res.json()
   return data.contact?.id ?? null
 }
 
-export async function updateContact(id: string, payload: Record<string, string>): Promise<void> {
+export async function updateContact(id: string, payload: ContactPayload): Promise<void> {
   await fetch(`${GHL_BASE}/contacts/${id}`, {
     method: 'PUT',
     headers: headers(),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload.fields,
+      ...(payload.customFields?.length ? { customFields: payload.customFields } : {}),
+    }),
   })
 }
 
