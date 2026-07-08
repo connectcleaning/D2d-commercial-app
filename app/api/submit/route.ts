@@ -131,7 +131,6 @@ export async function POST(req: NextRequest) {
         } else {
           await sendEmail({
             contactId,
-            toEmail: merged.email,
             fromEmail: process.env.GHL_EMAIL_FROM,
             subject: emailData.email_subject,
             body: emailData.email_body,

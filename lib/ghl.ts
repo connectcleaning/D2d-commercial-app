@@ -66,7 +66,6 @@ export async function addNote(contactId: string, body: string): Promise<void> {
 
 export async function sendEmail(params: {
   contactId: string
-  toEmail: string
   fromEmail: string
   subject: string
   body: string
@@ -79,7 +78,6 @@ export async function sendEmail(params: {
       contactId: params.contactId,
       locationId: process.env.GHL_LOCATION_ID!,
       emailFrom: params.fromEmail,
-      emailTo: params.toEmail,
       subject: params.subject,
       html: params.body.replace(/\n/g, '<br>'),
     }),
