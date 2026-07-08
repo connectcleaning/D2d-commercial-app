@@ -63,3 +63,25 @@ export async function addNote(contactId: string, body: string): Promise<void> {
     body: JSON.stringify({ body }),
   })
 }
+
+export async function sendEmail(params: {
+  contactId: string
+  toEmail: string
+  fromEmail: string
+  subject: string
+  body: string
+}): Promise<void> {
+  await fetch(`${GHL_BASE}/conversations/messages/outbound`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      type: 'Email',
+      contactId: params.contactId,
+      locationId: process.env.GHL_LOCATION_ID!,
+      emailFrom: params.fromEmail,
+      emailTo: params.toEmail,
+      subject: params.subject,
+      html: params.body.replace(/\n/g, '<br>'),
+    }),
+  })
+}

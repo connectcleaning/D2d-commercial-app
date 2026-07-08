@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseBusinessCard, CardData } from '@/lib/vision'
-import { findContactByPhone, createContact, updateContact, addTag, addNote } from '@/lib/ghl'
+import { findContactByPhone, createContact, updateContact, addTag, addNote, sendEmail } from '@/lib/ghl'
 import { supabase } from '@/lib/supabase'
 
 const TAG_MAP: Record<string, string> = {
@@ -30,6 +30,12 @@ export async function POST(req: NextRequest) {
       lead_status: (formData.get('lead_status') as string) || 'Cold',
       phone: (formData.get('phone') as string) || '',
       notes: (formData.get('notes') as string) || '',
+    }
+
+    const emailData = {
+      send_email: formData.get('send_email') === 'true',
+      email_subject: (formData.get('email_subject') as string) || '',
+      email_body: (formData.get('email_body') as string) || '',
     }
 
     // Collect all photos (single photo or multiple: photo_0, photo_1, ...)
@@ -115,6 +121,19 @@ export async function POST(req: NextRequest) {
 
       if (noteParts.length > 0) {
         await addNote(contactId, noteParts.join('\n\n'))
+      }
+
+      if (emailData.send_email && emailData.email_subject && emailData.email_body && merged.email) {
+        const fromEmail = process.env.GHL_EMAIL_FROM || ''
+        if (fromEmail) {
+          await sendEmail({
+            contactId,
+            toEmail: merged.email,
+            fromEmail,
+            subject: emailData.email_subject,
+            body: emailData.email_body,
+          })
+        }
       }
     }
 

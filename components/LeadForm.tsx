@@ -92,6 +92,62 @@ function newBulkItem(file: File): BulkItem {
 export default function LeadForm() {
   const [mode, setMode] = useState<AppMode>('single')
 
+  // Email
+  const [sendEmail, setSendEmail] = useState(false)
+  const [emailType, setEmailType] = useState<'met_dm' | 'met_other' | 'custom'>('met_dm')
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailBody, setEmailBody] = useState('')
+
+  const EMAIL_TEMPLATES = {
+    met_dm: {
+      subject: 'Great meeting you!',
+      body: `Hi [First Name],
+
+It was great meeting you! Our team is here to help with your commercial cleaning, janitorial, windows, pressure washing, and more.
+
+We'd love to put together a free quote for you — no pressure at all.
+
+From Darius, Owner
+Connect Cleaning
+
+P.S. We're rated 5 stars on Google with over 130 reviews!`,
+    },
+    met_other: {
+      subject: 'Introduction from Connect Cleaning',
+      body: `Hi [First Name],
+
+My name is Darius, Owner of Connect Cleaning. I stopped by your office recently and one of your team members was kind enough to pass along your card.
+
+I'd love to introduce myself and put together a free quote for your commercial cleaning needs — janitorial, windows, pressure washing, and more.
+
+Would you be open to a quick conversation?
+
+From Darius, Owner
+Connect Cleaning
+
+P.S. We're rated 5 stars on Google with over 130 reviews!`,
+    },
+  }
+
+  function handleEmailTypeChange(type: 'met_dm' | 'met_other' | 'custom') {
+    setEmailType(type)
+    if (type !== 'custom') {
+      setEmailSubject(EMAIL_TEMPLATES[type].subject)
+      setEmailBody(EMAIL_TEMPLATES[type].body)
+    } else {
+      setEmailSubject('')
+      setEmailBody('')
+    }
+  }
+
+  function handleSendEmailToggle(on: boolean) {
+    setSendEmail(on)
+    if (on && emailType !== 'custom') {
+      setEmailSubject(EMAIL_TEMPLATES[emailType].subject)
+      setEmailBody(EMAIL_TEMPLATES[emailType].body)
+    }
+  }
+
   // Single mode
   const [form, setForm] = useState<SingleForm>(emptyForm)
   const [singlePhotos, setSinglePhotos] = useState<File[]>([])
@@ -199,8 +255,12 @@ export default function LeadForm() {
     setBanner(null)
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
-    // Send multiple photos as photo_0, photo_1, etc.
     singlePhotos.forEach((photo, i) => fd.append(`photo_${i}`, photo))
+    fd.append('send_email', sendEmail ? 'true' : 'false')
+    if (sendEmail) {
+      fd.append('email_subject', emailSubject)
+      fd.append('email_body', emailBody)
+    }
     try {
       const res = await fetch('/api/submit', { method: 'POST', body: fd })
       const data = await res.json()
@@ -209,6 +269,10 @@ export default function LeadForm() {
         setForm(emptyForm)
         setSinglePhotos([])
         setSinglePreviews([])
+        setSendEmail(false)
+        setEmailType('met_dm')
+        setEmailSubject('')
+        setEmailBody('')
         setTimeout(() => setBanner(null), 5000)
       } else {
         setBanner({ type: 'error', message: data.error || 'Something went wrong.' })
@@ -544,6 +608,75 @@ export default function LeadForm() {
           <label className={labelClass}>Notes</label>
           <textarea name="notes" value={form.notes} onChange={handleSingleChange} placeholder="Call back Thursday, interested in weekly service..." rows={3} className={inputClass + ' resize-none'} />
         </div>
+        {/* Email toggle */}
+        <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Send Email</p>
+              <p className="text-xs text-gray-400">Sends via GHL after contact is saved</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSendEmailToggle(!sendEmail)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${sendEmail ? 'bg-blue-900' : 'bg-gray-300'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${sendEmail ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          {sendEmail && (
+            <div className="space-y-3 pt-1">
+              <div className="space-y-1.5">
+                {(['met_dm', 'met_other', 'custom'] as const).map(type => (
+                  <label key={type} className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="email_type"
+                      value={type}
+                      checked={emailType === type}
+                      onChange={() => handleEmailTypeChange(type)}
+                      className="accent-blue-900"
+                    />
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                      {type === 'met_dm' && '👋 Met the decision maker'}
+                      {type === 'met_other' && '🤝 Met someone else, got their card'}
+                      {type === 'custom' && '✏️ Custom email'}
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              {emailType !== 'custom' || true ? (
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Subject</label>
+                    <input
+                      type="text"
+                      value={emailSubject}
+                      onChange={e => setEmailSubject(e.target.value)}
+                      placeholder="Email subject"
+                      className={smallInputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Body</label>
+                    <textarea
+                      value={emailBody}
+                      onChange={e => setEmailBody(e.target.value)}
+                      placeholder={emailType === 'custom' ? 'Write your email...' : ''}
+                      rows={8}
+                      className={smallInputClass + ' resize-none'}
+                    />
+                  </div>
+                  {!form.email && (
+                    <p className="text-amber-600 text-xs">⚠️ Enter an email address above to send this email</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
         <button type="submit" disabled={loading}
           className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors">
           {loading ? (
