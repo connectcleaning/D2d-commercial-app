@@ -137,8 +137,16 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`,
       setEmailSubject(EMAIL_TEMPLATES[type].subject)
       setEmailBody(EMAIL_TEMPLATES[type].body)
     } else {
-      setEmailSubject('')
-      setEmailBody('')
+      setEmailSubject('ATTN: {{contact.first_name}}')
+      setEmailBody(`Hi {{contact.first_name}},
+
+
+
+Looking forward to connecting,
+Darius Pyle (Owner)
+Connect Cleaning
+
+P.S. We're rated 5 stars on Google with over 130 reviews!`)
     }
   }
 
