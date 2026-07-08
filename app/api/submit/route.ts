@@ -123,13 +123,16 @@ export async function POST(req: NextRequest) {
         await addNote(contactId, noteParts.join('\n\n'))
       }
 
-      if (emailData.send_email && emailData.email_subject && emailData.email_body && merged.email) {
-        const fromEmail = process.env.GHL_EMAIL_FROM || ''
-        if (fromEmail) {
+      if (emailData.send_email) {
+        if (!merged.email) {
+          console.warn('[submit] Email send requested but no email address on contact')
+        } else if (!process.env.GHL_EMAIL_FROM) {
+          console.error('[submit] GHL_EMAIL_FROM env var not set')
+        } else {
           await sendEmail({
             contactId,
             toEmail: merged.email,
-            fromEmail,
+            fromEmail: process.env.GHL_EMAIL_FROM,
             subject: emailData.email_subject,
             body: emailData.email_body,
           })

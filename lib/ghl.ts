@@ -71,7 +71,7 @@ export async function sendEmail(params: {
   subject: string
   body: string
 }): Promise<void> {
-  await fetch(`${GHL_BASE}/conversations/messages/outbound`, {
+  const res = await fetch(`${GHL_BASE}/conversations/messages`, {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
@@ -84,4 +84,8 @@ export async function sendEmail(params: {
       html: params.body.replace(/\n/g, '<br>'),
     }),
   })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GHL email failed (${res.status}): ${text}`)
+  }
 }
