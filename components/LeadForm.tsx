@@ -100,12 +100,12 @@ export default function LeadForm() {
 
   const EMAIL_TEMPLATES = {
     met_dm: {
-      subject: 'Great meeting you!',
-      body: `Hi [First Name],
+      subject: 'ATTN: {{contact.first_name}}',
+      body: `Hi {{contact.first_name}},
 
 It was great meeting you! Our team is here to help with your commercial cleaning, janitorial, windows, pressure washing, and more.
 
-We'd love to put together a free quote for you — no pressure at all.
+We'd love to put together a free quote for you, no pressure at all.
 
 From Darius, Owner
 Connect Cleaning
@@ -113,12 +113,12 @@ Connect Cleaning
 P.S. We're rated 5 stars on Google with over 130 reviews!`,
     },
     met_other: {
-      subject: 'Introduction from Connect Cleaning',
-      body: `Hi [First Name],
+      subject: 'ATTN: {{contact.first_name}}',
+      body: `Hi {{contact.first_name}},
 
-My name is Darius, Owner of Connect Cleaning. I stopped by your office recently and one of your team members was kind enough to pass along your card.
+My name is Darius, Owner of Connect Cleaning. I stopped by recently and met your team, and they gave me your contact.
 
-I'd love to introduce myself and put together a free quote for your commercial cleaning needs — janitorial, windows, pressure washing, and more.
+I'd love to introduce myself and put together a free quote for your commercial cleaning needs, janitorial, windows, pressure washing, and more.
 
 Would you be open to a quick conversation?
 
@@ -639,7 +639,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`,
                     />
                     <span className="text-sm text-gray-700 group-hover:text-gray-900">
                       {type === 'met_dm' && '👋 Met the decision maker'}
-                      {type === 'met_other' && '🤝 Met someone else, got their card'}
+                      {type === 'met_other' && '🤝 Met someone else, got DM card'}
                       {type === 'custom' && '✏️ Custom email'}
                     </span>
                   </label>
