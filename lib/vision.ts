@@ -16,7 +16,26 @@ export interface CardData {
   notes?: string | null
 }
 
+async function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export async function parseBusinessCard(imageBase64: string, mediaType: string): Promise<CardData> {
+  let lastError: any
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await sleep(attempt * 2000)
+    try {
+      return await _parseBusinessCard(imageBase64, mediaType)
+    } catch (err: any) {
+      lastError = err
+      const status = err?.status ?? err?.error?.status
+      if (status !== 529 && status !== 529 && status !== 503) throw err
+    }
+  }
+  throw lastError
+}
+
+async function _parseBusinessCard(imageBase64: string, mediaType: string): Promise<CardData> {
   const response = await anthropic.messages.create({
     model: 'claude-opus-4-8',
     max_tokens: 1024,
