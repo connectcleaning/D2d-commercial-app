@@ -107,7 +107,8 @@ It was great meeting you! Our team is here to help with your commercial cleaning
 
 We'd love to put together a free quote for you, no pressure at all.
 
-From Darius, Owner
+Looking forward to connecting,
+Darius Pyle (Owner)
 Connect Cleaning
 
 P.S. We're rated 5 stars on Google with over 130 reviews!`,
@@ -122,7 +123,8 @@ I'd love to introduce myself and put together a free quote for your commercial c
 
 Would you be open to a quick conversation?
 
-From Darius, Owner
+Looking forward to connecting,
+Darius Pyle (Owner)
 Connect Cleaning
 
 P.S. We're rated 5 stars on Google with over 130 reviews!`,
