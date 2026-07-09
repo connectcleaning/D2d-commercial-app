@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { RepContext } from '@/lib/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -89,8 +90,16 @@ function newBulkItem(file: File): BulkItem {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function LeadForm() {
-  const [mode, setMode] = useState<AppMode>('single')
+interface LeadFormProps {
+  repContext: RepContext
+  lat: number | null
+  lng: number | null
+  initialMode?: AppMode
+  onBack: () => void
+}
+
+export default function LeadForm({ repContext, lat, lng, initialMode = 'single', onBack }: LeadFormProps) {
+  const [mode, setMode] = useState<AppMode>(initialMode)
 
   // Email
   const [sendEmail, setSendEmail] = useState(false)
@@ -266,6 +275,10 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
     singlePhotos.forEach((photo, i) => fd.append(`photo_${i}`, photo))
+    fd.append('rep_name', repContext.rep_name)
+    fd.append('script', String(repContext.script))
+    if (lat !== null) fd.append('lat', String(lat))
+    if (lng !== null) fd.append('lng', String(lng))
     fd.append('send_email', sendEmail ? 'true' : 'false')
     if (sendEmail) {
       fd.append('email_subject', emailSubject)
@@ -314,6 +327,8 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
       fd.append('state', item.state)
       fd.append('zip', item.zip)
       fd.append('notes', item.notes)
+      fd.append('rep_name', repContext.rep_name)
+      fd.append('script', String(repContext.script))
       try {
         const res = await fetch('/api/submit', { method: 'POST', body: fd })
         const data = await res.json()
@@ -343,7 +358,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
         <input ref={bulkUploadRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBulkPhotoChange} />
 
         <div className="flex items-center justify-between">
-          <button onClick={() => { setMode('single'); clearBulk() }} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">← Back</button>
+          <button onClick={() => { clearBulk(); onBack() }} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">← Back</button>
           <h2 className="text-gray-900 font-semibold">Bulk Import</h2>
           <div className="w-10" />
         </div>
@@ -516,7 +531,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
                   </div>
                 )}
 
-                <button onClick={() => { clearBulk(); setMode('single') }} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
+                <button onClick={() => { clearBulk(); onBack() }} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-xl transition-colors">
                   Done
                 </button>
               </div>
@@ -700,13 +715,20 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
           ) : 'Submit Lead →'}
         </button>
 
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-100 pt-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-gray-400 hover:text-gray-600 text-sm transition-colors"
+          >
+            ← Back
+          </button>
           <button
             type="button"
             onClick={() => setMode('bulk')}
-            className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-gray-600 py-2 text-sm transition-colors"
+            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 py-2 text-sm transition-colors"
           >
-            <span>📋</span> Bulk Import multiple contacts
+            <span>📁</span> Bulk Import
           </button>
         </div>
       </form>

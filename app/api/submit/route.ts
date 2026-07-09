@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
       notes: (formData.get('notes') as string) || '',
     }
 
+    const visitMeta = {
+      rep_name: (formData.get('rep_name') as string) || 'Unknown',
+      script: parseInt(formData.get('script') as string) || 1,
+      lat: formData.get('lat') ? parseFloat(formData.get('lat') as string) : null,
+      lng: formData.get('lng') ? parseFloat(formData.get('lng') as string) : null,
+    }
+
     const emailData = {
       send_email: formData.get('send_email') === 'true',
       email_subject: (formData.get('email_subject') as string) || '',
@@ -141,7 +148,7 @@ export async function POST(req: NextRequest) {
 
     const allNotes = [merged.manual_notes, merged.ai_notes].filter(Boolean).join('\n')
 
-    await supabase.from('leads').insert({
+    const { data: leadRow } = await supabase.from('leads').insert({
       business_name: merged.business_name,
       decision_maker_name: merged.name,
       email: merged.email,
@@ -155,6 +162,19 @@ export async function POST(req: NextRequest) {
       notes: allNotes,
       ghl_contact_id: contactId,
       status: contactId ? 'success' : 'partial',
+    }).select('id').single()
+
+    await supabase.from('visits').insert({
+      rep_name: visitMeta.rep_name,
+      script: visitMeta.script,
+      outcome: 'lead_captured',
+      business_name: merged.business_name || null,
+      city: merged.city || null,
+      state: merged.state || null,
+      lat: visitMeta.lat,
+      lng: visitMeta.lng,
+      notes: merged.manual_notes || null,
+      lead_id: leadRow?.id ?? null,
     })
 
     return NextResponse.json({ success: true, contactId })

@@ -1,4 +1,4 @@
-import LeadForm from '@/components/LeadForm'
+import HomeScreen from '@/components/HomeScreen'
 import Image from 'next/image'
 
 export default function Home() {
@@ -11,7 +11,7 @@ export default function Home() {
           </div>
           <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">Commercial Lead Capture</p>
         </div>
-        <LeadForm />
+        <HomeScreen />
       </div>
     </main>
   )
