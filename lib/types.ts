@@ -35,9 +35,18 @@ export interface ScriptRow {
   conversion_pct: number
 }
 
+export interface BusinessTypeRow {
+  type: string
+  doors: number
+  leads: number
+  hot_leads: number
+  conversion_pct: number
+}
+
 export interface AnalyticsData {
   kpi: KpiData
   cities: string[]
   matrix: { slot: TimeSlot; byCityAndTotal: Record<string, number> }[]
   scripts: ScriptRow[]
+  businessTypes: BusinessTypeRow[]
 }

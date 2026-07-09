@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseBusinessCard, CardData } from '@/lib/vision'
 import { findContactByPhone, createContact, updateContact, addTag, addNote, sendEmail } from '@/lib/ghl'
+import { classifyBusinessType } from '@/lib/classify'
 import { supabase } from '@/lib/supabase'
 
 const TAG_MAP: Record<string, string> = {
@@ -164,11 +165,14 @@ export async function POST(req: NextRequest) {
       status: contactId ? 'success' : 'partial',
     }).select('id').single()
 
+    const business_type = merged.business_name ? await classifyBusinessType(merged.business_name) : 'Other'
+
     await supabase.from('visits').insert({
       rep_name: visitMeta.rep_name,
       script: visitMeta.script,
       outcome: 'lead_captured',
       business_name: merged.business_name || null,
+      business_type,
       city: merged.city || null,
       state: merged.state || null,
       lat: visitMeta.lat,

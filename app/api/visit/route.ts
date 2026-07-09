@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { classifyBusinessType } from '@/lib/classify'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,11 +15,14 @@ export async function POST(req: NextRequest) {
     const latRaw = formData.get('lat') as string | null
     const lngRaw = formData.get('lng') as string | null
 
+    const business_type = business_name ? await classifyBusinessType(business_name) : 'Other'
+
     await supabase.from('visits').insert({
       rep_name,
       script,
       outcome: 'not_captured',
       business_name,
+      business_type,
       notes,
       city,
       state,
