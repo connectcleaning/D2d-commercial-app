@@ -40,7 +40,7 @@ export interface BusinessTypeRow {
   doors: number
   leads: number
   hot_leads: number
-  conversion_pct: number
+  hot_pct: number
 }
 
 export interface AnalyticsData {
