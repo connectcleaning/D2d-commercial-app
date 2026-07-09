@@ -136,13 +136,16 @@ async function fetchAnalytics(range: DateRangeKey, from?: string, to?: string): 
   }
 
   const businessTypes = Object.entries(typeMap)
-    .map(([type, stats]) => ({
-      type,
-      doors: stats.doors,
-      leads: stats.leads,
-      hot_leads: stats.lead_ids.filter(id => id && hotLeadIdSet.has(id)).length,
-      conversion_pct: stats.doors > 0 ? Math.round((stats.leads / stats.doors) * 1000) / 10 : 0,
-    }))
+    .map(([type, stats]) => {
+      const hot_leads = stats.lead_ids.filter(id => id && hotLeadIdSet.has(id)).length
+      return {
+        type,
+        doors: stats.doors,
+        leads: stats.leads,
+        hot_leads,
+        hot_pct: stats.doors > 0 ? Math.round((hot_leads / stats.doors) * 1000) / 10 : 0,
+      }
+    })
     .filter(r => r.doors > 0)
     .sort((a, b) => b.doors - a.doors)
 
@@ -276,7 +279,7 @@ export default async function AnalyticsPage({
                     <th className="text-gray-500 font-medium pb-2 px-2 text-center">Doors</th>
                     <th className="text-gray-500 font-medium pb-2 px-2 text-center">Leads</th>
                     <th className="text-gray-500 font-medium pb-2 px-2 text-center">🔥 Hot</th>
-                    <th className="text-gray-500 font-medium pb-2 pl-2 text-center">Conv %</th>
+                    <th className="text-gray-500 font-medium pb-2 pl-2 text-center">% Hot</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,8 +290,8 @@ export default async function AnalyticsPage({
                       <td className="py-2 px-2 text-center text-gray-600">{row.leads}</td>
                       <td className="py-2 px-2 text-center font-semibold text-orange-600">{row.hot_leads > 0 ? row.hot_leads : <span className="text-gray-300">—</span>}</td>
                       <td className="py-2 pl-2 text-center">
-                        <span className={`font-semibold ${row.conversion_pct >= 30 ? 'text-green-600' : row.conversion_pct >= 15 ? 'text-yellow-600' : 'text-gray-500'}`}>
-                          {row.conversion_pct}%
+                        <span className={`font-semibold ${row.hot_pct >= 10 ? 'text-green-600' : row.hot_pct >= 5 ? 'text-yellow-600' : 'text-gray-500'}`}>
+                          {row.hot_pct}%
                         </span>
                       </td>
                     </tr>
