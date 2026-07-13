@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { DateRangeKey, TimeSlot, AnalyticsData } from '@/lib/types'
 import DateRangeToggle from '@/components/analytics/DateRangeToggle'
 
+export const dynamic = 'force-dynamic'
+
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
 function getDateRange(range: DateRangeKey, from?: string, to?: string): { start: Date; end: Date } {

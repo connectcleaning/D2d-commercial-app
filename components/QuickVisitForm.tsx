@@ -15,6 +15,7 @@ export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) 
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
 
   const inputClass = 'w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent placeholder-gray-400'
   const labelClass = 'block text-sm font-medium text-gray-600 mb-1'
@@ -31,7 +32,12 @@ export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) 
     if (lng !== null) fd.append('lng', String(lng))
 
     try {
-      await fetch('/api/visit', { method: 'POST', body: fd })
+      const res = await fetch('/api/visit', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        setError(data.error || `Server error ${res.status}`)
+        return
+      }
       setDone(true)
       setTimeout(() => {
         setBusinessName('')
@@ -39,6 +45,8 @@ export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) 
         setDone(false)
         onBack()
       }, 1500)
+    } catch (e: any) {
+      setError(e.message || 'Network error')
     } finally {
       setLoading(false)
     }
@@ -51,6 +59,12 @@ export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) 
         <h2 className="text-gray-900 font-semibold">Log Visit — No Lead Info</h2>
         <div className="w-10" />
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          {error}
+        </div>
+      )}
 
       {done ? (
         <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-4 text-center font-medium">
