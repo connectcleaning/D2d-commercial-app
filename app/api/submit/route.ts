@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseBusinessCard, CardData } from '@/lib/vision'
 import { findContactByPhone, createContact, updateContact, addTag, addNote, sendEmail } from '@/lib/ghl'
 import { classifyBusinessType } from '@/lib/classify'
+import { findOrCreateBusiness, updateGhlVisitCount } from '@/lib/business'
 import { supabase } from '@/lib/supabase'
 
 const TAG_MAP: Record<string, string> = {
@@ -167,12 +168,24 @@ export async function POST(req: NextRequest) {
 
     const business_type = merged.business_name ? await classifyBusinessType(merged.business_name) : 'Other'
 
+    const business_id = await findOrCreateBusiness({
+      name: merged.business_name || '',
+      business_type,
+      city: merged.city || null,
+      state: merged.state || null,
+      address: merged.address || null,
+      lat: visitMeta.lat,
+      lng: visitMeta.lng,
+      ghl_contact_id: contactId,
+    })
+
     await supabase.from('visits').insert({
       rep_name: visitMeta.rep_name,
       script: visitMeta.script,
       outcome: 'lead_captured',
       business_name: merged.business_name || null,
       business_type,
+      business_id,
       city: merged.city || null,
       state: merged.state || null,
       lat: visitMeta.lat,
@@ -180,6 +193,8 @@ export async function POST(req: NextRequest) {
       notes: merged.manual_notes || null,
       lead_id: leadRow?.id ?? null,
     })
+
+    if (business_id) await updateGhlVisitCount(business_id)
 
     return NextResponse.json({ success: true, contactId })
   } catch (err: any) {
