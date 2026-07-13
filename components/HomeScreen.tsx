@@ -40,12 +40,12 @@ const SCRIPTS: { value: number; label: string; desc: string; full: string }[] = 
 const CTX_KEY = 'rep_context_v1'
 
 function loadCtx(): RepContext {
-  if (typeof window === 'undefined') return { rep_name: REPS[0], script: 1 }
+  if (typeof window === 'undefined') return { rep_name: REPS[0], script: null }
   try {
     const raw = localStorage.getItem(CTX_KEY)
     if (raw) return JSON.parse(raw)
   } catch {}
-  return { rep_name: REPS[0], script: 1 }
+  return { rep_name: REPS[0], script: null }
 }
 
 function saveCtx(ctx: RepContext) {
@@ -54,7 +54,7 @@ function saveCtx(ctx: RepContext) {
 
 export default function HomeScreen() {
   const [mode, setMode] = useState<HomeMode>('home')
-  const [ctx, setCtx] = useState<RepContext>({ rep_name: REPS[0], script: 1 })
+  const [ctx, setCtx] = useState<RepContext>({ rep_name: REPS[0], script: null })
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
   const [previewScript, setPreviewScript] = useState<number | null>(null)
@@ -121,11 +121,11 @@ export default function HomeScreen() {
               <div key={s.value} className="relative">
                 <button
                   type="button"
-                  onClick={() => updateCtx({ script: s.value })}
+                  onClick={() => updateCtx({ script: ctx.script === s.value ? null : s.value })}
                   className={`w-full text-left px-3 py-2.5 pr-8 rounded-lg border transition-colors ${
                     ctx.script === s.value
                       ? 'border-blue-900 bg-blue-50 text-blue-900'
-                      : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   <p className="text-sm font-semibold">{s.label}</p>

@@ -15,7 +15,7 @@ export interface Visit {
 
 export interface RepContext {
   rep_name: string
-  script: number
+  script: number | null
 }
 
 export type TimeSlot = 'Morning' | 'Afternoon' | 'Evening'

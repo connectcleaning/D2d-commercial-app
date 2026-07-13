@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
 
     const rep_name = (formData.get('rep_name') as string) || 'Unknown'
-    const script = parseInt(formData.get('script') as string) || 1
+    const script = formData.get('script') ? parseInt(formData.get('script') as string) : null
     const business_name = (formData.get('business_name') as string) || null
     const notes = (formData.get('notes') as string) || null
     const city = (formData.get('city') as string) || null

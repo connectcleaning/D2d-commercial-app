@@ -296,7 +296,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
         setEmailType('met_dm')
         setEmailSubject('')
         setEmailBody('')
-        setTimeout(() => setBanner(null), 5000)
+        setTimeout(() => { setBanner(null); onBack() }, 2000)
       } else {
         setBanner({ type: 'error', message: data.error || 'Something went wrong.' })
       }

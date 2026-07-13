@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const visitMeta = {
       rep_name: (formData.get('rep_name') as string) || 'Unknown',
-      script: parseInt(formData.get('script') as string) || 1,
+      script: formData.get('script') ? parseInt(formData.get('script') as string) : null,
       lat: formData.get('lat') ? parseFloat(formData.get('lat') as string) : null,
       lng: formData.get('lng') ? parseFloat(formData.get('lng') as string) : null,
     }
