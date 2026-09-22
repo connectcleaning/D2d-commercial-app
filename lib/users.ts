@@ -34,12 +34,12 @@ export const USERS: AppUser[] = [
     passwordEnv: 'AUTH_PW_DARIUS',
   },
   {
-    email: 'rickyley62@gmail.com',
+    email: 'rick.ley@connectcleaning.com',
     name: 'Rick Ley',
     title: 'Sales Representative',
     role: 'rep',
     ghlUserId: 'nNkZhChhJ8PgDA8Dhty0',
-    fromEmail: 'hello@connectcleanfl.com', // shared for now; swap to Rick's own sending address later
+    fromEmail: 'rick.ley@connectcleaning.com',
     passwordEnv: 'AUTH_PW_RICK',
   },
 ]
