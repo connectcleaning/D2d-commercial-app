@@ -34,12 +34,13 @@ export const USERS: AppUser[] = [
     passwordEnv: 'AUTH_PW_DARIUS',
   },
   {
-    email: 'rick.ley@connectcleaning.com',
+    email: 'rick.ley@connectcleaning.com', // login only
     name: 'Rick Ley',
     title: 'Sales Representative',
     role: 'rep',
     ghlUserId: 'nNkZhChhJ8PgDA8Dhty0',
-    fromEmail: 'rick.ley@connectcleaning.com',
+    // Sending from the established domain until connectcleaning.com is warmed up (SPF/DKIM + reputation).
+    fromEmail: 'hello@connectcleanfl.com',
     passwordEnv: 'AUTH_PW_RICK',
   },
 ]
