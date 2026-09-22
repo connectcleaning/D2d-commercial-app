@@ -60,14 +60,19 @@ export default function HomeScreen({ user }: { user: SessionUserClient }) {
           <p className="text-xs text-gray-400 uppercase tracking-wide">Signed in as</p>
           <p className="text-gray-900 font-semibold">{user.name}</p>
         </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={loggingOut}
-          className="text-gray-400 hover:text-gray-600 text-sm transition-colors disabled:opacity-60"
-        >
-          {loggingOut ? 'Logging out…' : 'Log out'}
-        </button>
+        <div className="flex items-center gap-4">
+          <Link href="/account" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+            Account
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="text-gray-400 hover:text-gray-600 text-sm transition-colors disabled:opacity-60"
+          >
+            {loggingOut ? 'Logging out…' : 'Log out'}
+          </button>
+        </div>
       </div>
 
       {/* GPS indicator */}

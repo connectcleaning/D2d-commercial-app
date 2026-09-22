@@ -34,8 +34,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Analytics is admin-only.
-  if (pathname.startsWith('/analytics') && user.role !== 'admin') {
+  // Admin-only areas.
+  const adminOnly = pathname.startsWith('/analytics') || pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
+  if (adminOnly && user.role !== 'admin') {
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ success: false, error: 'Admins only' }, { status: 403 })
+    }
     const url = req.nextUrl.clone()
     url.pathname = '/'
     url.search = ''
