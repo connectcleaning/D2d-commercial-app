@@ -108,7 +108,7 @@ export default function LeadForm({ user, lat, lng, initialMode = 'single', onBac
   const [emailBody, setEmailBody] = useState('')
 
   const repFirstName = user.name.split(' ')[0]
-  const signature = `${user.name} (${user.title})`
+  const signature = user.name
 
   const EMAIL_TEMPLATES = {
     met_dm: {
