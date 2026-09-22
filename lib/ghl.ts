@@ -1,5 +1,9 @@
 const GHL_BASE = 'https://services.leadconnectorhq.com'
 
+// Commercial Sales pipeline + its "New Leads" stage. Overridable via env.
+const COMMERCIAL_PIPELINE_ID = process.env.GHL_COMMERCIAL_PIPELINE_ID || 'k3usaiBss39ESns1bWVj'
+const COMMERCIAL_NEW_STAGE_ID = process.env.GHL_COMMERCIAL_STAGE_NEW_ID || '73cdd9b0-1076-483e-b326-3442a82b465f'
+
 function headers() {
   return {
     'Authorization': `Bearer ${process.env.GHL_API_KEY!}`,
@@ -62,6 +66,37 @@ export async function addNote(contactId: string, body: string): Promise<void> {
     headers: headers(),
     body: JSON.stringify({ body }),
   })
+}
+
+/**
+ * Create (or update, if one already exists for this contact) an opportunity in
+ * the Commercial Sales pipeline, assigned to the rep who logged the lead.
+ * Uses the upsert endpoint so it will not create duplicates.
+ */
+export async function upsertOpportunity(params: {
+  contactId: string
+  name: string
+  assignedTo?: string | null
+}): Promise<void> {
+  const body: Record<string, unknown> = {
+    pipelineId: COMMERCIAL_PIPELINE_ID,
+    pipelineStageId: COMMERCIAL_NEW_STAGE_ID,
+    locationId: process.env.GHL_LOCATION_ID!,
+    contactId: params.contactId,
+    status: 'open',
+    name: params.name,
+  }
+  if (params.assignedTo) body.assignedTo = params.assignedTo
+
+  const res = await fetch(`${GHL_BASE}/opportunities/upsert`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`GHL opportunity upsert failed (${res.status}): ${text}`)
+  }
 }
 
 export async function sendEmail(params: {

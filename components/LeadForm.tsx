@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { RepContext } from '@/lib/types'
+import { SessionUserClient } from '@/lib/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -91,14 +91,14 @@ function newBulkItem(file: File): BulkItem {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface LeadFormProps {
-  repContext: RepContext
+  user: SessionUserClient
   lat: number | null
   lng: number | null
   initialMode?: AppMode
   onBack: () => void
 }
 
-export default function LeadForm({ repContext, lat, lng, initialMode = 'single', onBack }: LeadFormProps) {
+export default function LeadForm({ user, lat, lng, initialMode = 'single', onBack }: LeadFormProps) {
   const [mode, setMode] = useState<AppMode>(initialMode)
 
   // Email
@@ -106,6 +106,9 @@ export default function LeadForm({ repContext, lat, lng, initialMode = 'single',
   const [emailType, setEmailType] = useState<'met_dm' | 'met_other' | 'custom'>('met_dm')
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
+
+  const repFirstName = user.name.split(' ')[0]
+  const signature = `${user.name} (${user.title})`
 
   const EMAIL_TEMPLATES = {
     met_dm: {
@@ -117,7 +120,7 @@ It was great meeting you! Our team is here to help with your commercial cleaning
 We'd love to put together a free quote for you, no pressure at all.
 
 Looking forward to connecting,
-Darius Pyle (Owner)
+${signature}
 Connect Cleaning
 
 P.S. We're rated 5 stars on Google with over 130 reviews!`,
@@ -126,14 +129,14 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`,
       subject: 'ATTN: {{contact.first_name}}',
       body: `Hi {{contact.first_name}},
 
-My name is Darius, Owner of Connect Cleaning. I stopped by recently and met your team, and they gave me your contact.
+My name is ${repFirstName} with Connect Cleaning. I stopped by recently and met your team, and they gave me your contact.
 
 I'd love to introduce myself and put together a free quote for your commercial cleaning needs, janitorial, windows, pressure washing, and more.
 
 Would you be open to a quick conversation?
 
 Looking forward to connecting,
-Darius Pyle (Owner)
+${signature}
 Connect Cleaning
 
 P.S. We're rated 5 stars on Google with over 130 reviews!`,
@@ -152,7 +155,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`,
 
 
 Looking forward to connecting,
-Darius Pyle (Owner)
+${signature}
 Connect Cleaning
 
 P.S. We're rated 5 stars on Google with over 130 reviews!`)
@@ -275,8 +278,6 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
     singlePhotos.forEach((photo, i) => fd.append(`photo_${i}`, photo))
-    fd.append('rep_name', repContext.rep_name)
-    fd.append('script', String(repContext.script))
     if (lat !== null) fd.append('lat', String(lat))
     if (lng !== null) fd.append('lng', String(lng))
     fd.append('send_email', sendEmail ? 'true' : 'false')
@@ -327,8 +328,6 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
       fd.append('state', item.state)
       fd.append('zip', item.zip)
       fd.append('notes', item.notes)
-      fd.append('rep_name', repContext.rep_name)
-      fd.append('script', String(repContext.script))
       try {
         const res = await fetch('/api/submit', { method: 'POST', body: fd })
         const data = await res.json()

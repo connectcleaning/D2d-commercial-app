@@ -2,7 +2,6 @@ export interface Visit {
   id: string
   created_at: string
   rep_name: string
-  script: number
   outcome: 'lead_captured' | 'not_captured'
   business_name?: string | null
   city?: string | null
@@ -13,9 +12,12 @@ export interface Visit {
   lead_id?: string | null
 }
 
-export interface RepContext {
-  rep_name: string
-  script: number | null
+/** Logged-in rep info passed from the server to client components. */
+export interface SessionUserClient {
+  name: string
+  email: string
+  title: string
+  role: 'admin' | 'rep'
 }
 
 export type TimeSlot = 'Morning' | 'Afternoon' | 'Evening'
@@ -28,10 +30,11 @@ export interface KpiData {
   hot_lead_pct: number
 }
 
-export interface ScriptRow {
-  script: number
+export interface RepRow {
+  rep: string
   doors: number
   leads: number
+  hot_leads: number
   conversion_pct: number
 }
 
@@ -47,6 +50,6 @@ export interface AnalyticsData {
   kpi: KpiData
   cities: string[]
   matrix: { slot: TimeSlot; byCityAndTotal: Record<string, number> }[]
-  scripts: ScriptRow[]
+  reps: RepRow[]
   businessTypes: BusinessTypeRow[]
 }

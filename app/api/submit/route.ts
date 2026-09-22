@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseBusinessCard, CardData } from '@/lib/vision'
-import { findContactByPhone, createContact, updateContact, addTag, addNote, sendEmail } from '@/lib/ghl'
+import { findContactByPhone, createContact, updateContact, addTag, addNote, sendEmail, upsertOpportunity } from '@/lib/ghl'
 import { classifyBusinessType } from '@/lib/classify'
 import { findOrCreateBusiness, updateGhlVisitCount } from '@/lib/business'
+import { getSessionUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 
 const TAG_MAP: Record<string, string> = {
@@ -18,6 +19,10 @@ function clean(obj: Record<string, string>): Record<string, string> {
 
 export async function POST(req: NextRequest) {
   try {
+    // The logged-in rep is the source of truth for attribution, sending
+    // address and GHL assignment — never trust the client for these.
+    const sessionUser = await getSessionUser()
+
     const formData = await req.formData()
 
     const manual = {
@@ -35,8 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     const visitMeta = {
-      rep_name: (formData.get('rep_name') as string) || 'Unknown',
-      script: formData.get('script') ? parseInt(formData.get('script') as string) : null,
+      rep_name: sessionUser?.name || 'Unknown',
       lat: formData.get('lat') ? parseFloat(formData.get('lat') as string) : null,
       lng: formData.get('lng') ? parseFloat(formData.get('lng') as string) : null,
     }
@@ -115,9 +119,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (contactId) {
+      // Existing contact — don't reassign ownership out from under whoever owns it.
       await updateContact(contactId, contactPayload)
     } else {
-      contactId = await createContact(contactPayload)
+      // New contact — assign it to the rep who logged it.
+      const createPayload = sessionUser
+        ? { ...contactPayload, fields: { ...contactPayload.fields, assignedTo: sessionUser.ghlUserId } }
+        : contactPayload
+      contactId = await createContact(createPayload)
     }
 
     if (contactId) {
@@ -132,15 +141,28 @@ export async function POST(req: NextRequest) {
         await addNote(contactId, noteParts.join('\n\n'))
       }
 
+      // Create the Commercial Sales opportunity, assigned to the logged-in rep.
+      // Non-fatal: a hiccup here must not lose the captured lead.
+      try {
+        await upsertOpportunity({
+          contactId,
+          name: merged.business_name || merged.name || 'New Commercial Lead',
+          assignedTo: sessionUser?.ghlUserId,
+        })
+      } catch (oppErr) {
+        console.error('[submit] opportunity upsert failed', oppErr)
+      }
+
+      const fromEmail = sessionUser?.fromEmail || process.env.GHL_EMAIL_FROM
       if (emailData.send_email) {
         if (!merged.email) {
           console.warn('[submit] Email send requested but no email address on contact')
-        } else if (!process.env.GHL_EMAIL_FROM) {
-          console.error('[submit] GHL_EMAIL_FROM env var not set')
+        } else if (!fromEmail) {
+          console.error('[submit] No from-email available (session fromEmail / GHL_EMAIL_FROM both unset)')
         } else {
           await sendEmail({
             contactId,
-            fromEmail: process.env.GHL_EMAIL_FROM,
+            fromEmail,
             subject: emailData.email_subject,
             body: emailData.email_body,
           })
@@ -181,7 +203,6 @@ export async function POST(req: NextRequest) {
 
     await supabase.from('visits').insert({
       rep_name: visitMeta.rep_name,
-      script: visitMeta.script,
       outcome: 'lead_captured',
       business_name: merged.business_name || null,
       business_type,

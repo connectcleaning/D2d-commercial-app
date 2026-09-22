@@ -1,16 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { RepContext } from '@/lib/types'
 
 interface Props {
-  repContext: RepContext
   lat: number | null
   lng: number | null
   onBack: () => void
 }
 
-export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) {
+export default function QuickVisitForm({ lat, lng, onBack }: Props) {
   const [businessName, setBusinessName] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,8 +22,6 @@ export default function QuickVisitForm({ repContext, lat, lng, onBack }: Props) 
     e.preventDefault()
     setLoading(true)
     const fd = new FormData()
-    fd.append('rep_name', repContext.rep_name)
-    fd.append('script', String(repContext.script))
     fd.append('business_name', businessName)
     fd.append('notes', notes)
     if (lat !== null) fd.append('lat', String(lat))
