@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { SessionUserClient } from '@/lib/types'
 
 interface RepInfo {
@@ -21,6 +22,8 @@ const inputClass =
 const labelClass = 'block text-sm font-medium text-gray-600 mb-1'
 
 export default function AccountForm({ user, isAdmin, reps }: Props) {
+  const router = useRouter()
+
   // ── Change own password ──────────────────────────────────────────────────
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -31,14 +34,8 @@ export default function AccountForm({ user, isAdmin, reps }: Props) {
   async function handleChange(e: React.FormEvent) {
     e.preventDefault()
     setMsg(null)
-    if (next.length < 8) {
-      setMsg({ type: 'error', text: 'New password must be at least 8 characters.' })
-      return
-    }
-    if (next !== confirm) {
-      setMsg({ type: 'error', text: 'New password and confirmation do not match.' })
-      return
-    }
+    if (next.length < 8) return setMsg({ type: 'error', text: 'New password must be at least 8 characters.' })
+    if (next !== confirm) return setMsg({ type: 'error', text: 'New password and confirmation do not match.' })
     setSaving(true)
     try {
       const res = await fetch('/api/account/change-password', {
@@ -60,31 +57,69 @@ export default function AccountForm({ user, isAdmin, reps }: Props) {
     }
   }
 
+  // ── Admin: add a rep ─────────────────────────────────────────────────────
+  const [newName, setNewName] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [newRole, setNewRole] = useState<'rep' | 'admin'>('rep')
+  const [adding, setAdding] = useState(false)
+  const [addMsg, setAddMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    setAddMsg(null)
+    if (!newName.trim() || !newEmail.includes('@')) {
+      return setAddMsg({ type: 'error', text: 'Enter a name and a valid email.' })
+    }
+    setAdding(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName, email: newEmail, role: newRole }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setAddMsg({
+          type: 'success',
+          text: data.emailed
+            ? `${data.user.name} added — invite email sent to ${data.user.email}.`
+            : `${data.user.name} added, but the invite email failed (${data.emailError || 'unknown'}). Use "email a reset link" below once email is configured.`,
+        })
+        setNewName(''); setNewEmail(''); setNewRole('rep')
+        router.refresh()
+      } else {
+        setAddMsg({ type: 'error', text: data.error || 'Could not add user.' })
+      }
+    } catch {
+      setAddMsg({ type: 'error', text: 'Network error. Try again.' })
+    } finally {
+      setAdding(false)
+    }
+  }
+
   // ── Admin: reset a rep's password ────────────────────────────────────────
   const [targetEmail, setTargetEmail] = useState(reps[0]?.email ?? '')
   const [resetPw, setResetPw] = useState('')
   const [resetting, setResetting] = useState(false)
-  const [resetResult, setResetResult] = useState<{ email: string; password: string; generated: boolean } | null>(null)
+  const [resetResult, setResetResult] = useState<{ mode: string; email: string; password?: string } | null>(null)
   const [resetErr, setResetErr] = useState('')
 
-  async function handleReset(e: React.FormEvent) {
-    e.preventDefault()
+  async function doReset(mode: 'link' | 'set') {
     setResetErr('')
     setResetResult(null)
-    if (resetPw && resetPw.length < 8) {
-      setResetErr('Password must be at least 8 characters (or leave blank to auto-generate).')
-      return
+    if (mode === 'set' && resetPw && resetPw.length < 8) {
+      return setResetErr('Password must be at least 8 characters (or leave blank to auto-generate).')
     }
     setResetting(true)
     try {
       const res = await fetch('/api/admin/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: targetEmail, newPassword: resetPw || undefined }),
+        body: JSON.stringify({ email: targetEmail, mode, newPassword: mode === 'set' ? resetPw || undefined : undefined }),
       })
       const data = await res.json()
       if (res.ok && data.success) {
-        setResetResult({ email: data.email, password: data.password, generated: data.generated })
+        setResetResult({ mode: data.mode, email: data.email, password: data.password })
         setResetPw('')
       } else {
         setResetErr(data.error || 'Could not reset password.')
@@ -107,13 +142,11 @@ export default function AccountForm({ user, isAdmin, reps }: Props) {
       {/* Change own password */}
       <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-4">
         <h2 className="text-gray-900 font-semibold">Change your password</h2>
-
         {msg && (
           <div className={`rounded-lg px-4 py-3 text-sm font-medium ${msg.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
             {msg.text}
           </div>
         )}
-
         <form onSubmit={handleChange} className="space-y-4">
           <div>
             <label className={labelClass}>Current password</label>
@@ -133,27 +166,66 @@ export default function AccountForm({ user, isAdmin, reps }: Props) {
         </form>
       </div>
 
+      {/* Admin: add a rep */}
+      {isAdmin && (
+        <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-4">
+          <div>
+            <h2 className="text-gray-900 font-semibold">Add a rep</h2>
+            <p className="text-xs text-gray-400 mt-0.5">They&apos;ll get an email with a link to set their password and sign in.</p>
+          </div>
+          {addMsg && (
+            <div className={`rounded-lg px-4 py-3 text-sm ${addMsg.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+              {addMsg.text}
+            </div>
+          )}
+          <form onSubmit={handleAdd} className="space-y-4">
+            <div>
+              <label className={labelClass}>Full name</label>
+              <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Jordan Smith" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Email</label>
+              <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="jordan@connectcleaning.com" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Role</label>
+              <select value={newRole} onChange={e => setNewRole(e.target.value as 'rep' | 'admin')} className={inputClass}>
+                <option value="rep">Rep</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <button type="submit" disabled={adding} className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors">
+              {adding ? 'Adding…' : 'Add Rep & Send Invite'}
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Admin: reset a rep's password */}
       {isAdmin && (
         <div className="bg-white rounded-2xl shadow-md ring-1 ring-gray-200 p-6 space-y-4">
           <div>
-            <h2 className="text-gray-900 font-semibold">Reset a rep's password</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Leave the field blank to auto-generate a temporary password to share.</p>
+            <h2 className="text-gray-900 font-semibold">Reset a rep&apos;s password</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Email them a reset link, or set a password directly (blank = auto-generate).</p>
           </div>
 
-          {resetErr && (
-            <div className="rounded-lg px-4 py-3 text-sm font-medium bg-red-50 border border-red-200 text-red-700">{resetErr}</div>
-          )}
+          {resetErr && <div className="rounded-lg px-4 py-3 text-sm font-medium bg-red-50 border border-red-200 text-red-700">{resetErr}</div>}
 
           {resetResult && (
             <div className="rounded-lg px-4 py-3 text-sm bg-green-50 border border-green-200 text-green-800 space-y-1">
-              <p className="font-medium">Password {resetResult.generated ? 'generated' : 'set'} for {resetResult.email}:</p>
-              <p className="font-mono text-base bg-white border border-green-200 rounded px-2 py-1 inline-block">{resetResult.password}</p>
-              <p className="text-xs text-green-700">Share this with them — they can change it under Account.</p>
+              {resetResult.mode === 'link' ? (
+                <p className="font-medium">Reset link emailed to {resetResult.email} ✓</p>
+              ) : (
+                <>
+                  <p className="font-medium">Password set for {resetResult.email}:</p>
+                  <p className="font-mono text-base bg-white border border-green-200 rounded px-2 py-1 inline-block">{resetResult.password}</p>
+                  <p className="text-xs text-green-700">Share it with them — they can change it under Account.</p>
+                </>
+              )}
             </div>
           )}
 
-          <form onSubmit={handleReset} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className={labelClass}>Rep</label>
               <select value={targetEmail} onChange={e => setTargetEmail(e.target.value)} className={inputClass}>
@@ -162,14 +234,27 @@ export default function AccountForm({ user, isAdmin, reps }: Props) {
                 ))}
               </select>
             </div>
-            <div>
-              <label className={labelClass}>New password <span className="text-gray-400 font-normal">(optional)</span></label>
-              <input type="text" value={resetPw} onChange={e => setResetPw(e.target.value)} className={inputClass} placeholder="Leave blank to auto-generate" />
-            </div>
-            <button type="submit" disabled={resetting} className="w-full bg-gray-800 hover:bg-gray-900 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors">
-              {resetting ? 'Resetting…' : 'Reset Password'}
+            <button
+              type="button"
+              onClick={() => doReset('link')}
+              disabled={resetting || !targetEmail}
+              className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
+            >
+              {resetting ? 'Working…' : 'Email a Reset Link'}
             </button>
-          </form>
+            <div className="pt-2 border-t border-gray-100 space-y-2">
+              <label className={labelClass}>Or set a password directly <span className="text-gray-400 font-normal">(optional)</span></label>
+              <input type="text" value={resetPw} onChange={e => setResetPw(e.target.value)} className={inputClass} placeholder="Leave blank to auto-generate" />
+              <button
+                type="button"
+                onClick={() => doReset('set')}
+                disabled={resetting || !targetEmail}
+                className="w-full bg-gray-800 hover:bg-gray-900 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
+              >
+                {resetting ? 'Working…' : 'Set Password Directly'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

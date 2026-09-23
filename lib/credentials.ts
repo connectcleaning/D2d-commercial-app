@@ -79,7 +79,7 @@ export async function verifyLogin(user: AppUser, password: string): Promise<bool
   if (typeof password !== 'string' || password.length === 0) return false
   const stored = await getStoredHash(user.email)
   if (stored) return verifyPassword(password, stored)
-  const expected = process.env[user.passwordEnv]
+  const expected = user.passwordEnv ? process.env[user.passwordEnv] : undefined
   if (!expected) return false
   if (expected.length !== password.length) return false
   let diff = 0

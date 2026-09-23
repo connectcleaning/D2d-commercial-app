@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { redirect } from 'next/navigation'
 import { getSessionUser } from '@/lib/auth'
-import { USERS } from '@/lib/users'
+import { listUsers } from '@/lib/users'
 import AccountForm from '@/components/AccountForm'
 
 export const dynamic = 'force-dynamic'
@@ -11,8 +11,9 @@ export default async function AccountPage() {
   if (!user) redirect('/login')
 
   const isAdmin = user.role === 'admin'
-  // Non-secret directory for the admin reset picker.
-  const reps = USERS.map(u => ({ email: u.email, name: u.name, role: u.role }))
+  const reps = isAdmin
+    ? (await listUsers()).map(u => ({ email: u.email, name: u.name, role: u.role }))
+    : []
 
   return (
     <main className="min-h-screen bg-gray-100 py-8 px-4">

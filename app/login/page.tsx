@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 
 export default function LoginPage() {
@@ -86,6 +87,12 @@ export default function LoginPage() {
               {loading ? 'Signing in…' : 'Sign In →'}
             </button>
           </form>
+
+          <div className="text-center pt-1">
+            <Link href="/forgot-password" className="text-gray-400 hover:text-gray-600 text-sm">
+              Forgot your password?
+            </Link>
+          </div>
         </div>
       </div>
     </main>

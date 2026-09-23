@@ -12,6 +12,21 @@ function headers() {
   }
 }
 
+const GHL_COMPANY_ID = process.env.GHL_COMPANY_ID || '6VfuKgQueRkPfCAljpYR'
+
+/** Find a GHL user's id by their email (for assigning leads to that rep). */
+export async function findUserIdByEmail(email: string): Promise<string | null> {
+  const e = email.trim().toLowerCase()
+  if (!e) return null
+  const url = `${GHL_BASE}/users/search?companyId=${GHL_COMPANY_ID}&query=${encodeURIComponent(e)}&limit=25`
+  const res = await fetch(url, { headers: headers() })
+  if (!res.ok) return null
+  const data = await res.json()
+  const users: any[] = data.users ?? []
+  const match = users.find(u => (u.email || '').toLowerCase() === e)
+  return match?.id ?? null
+}
+
 export async function findContactByPhone(phone: string): Promise<string | null> {
   const cleaned = phone.replace(/\D/g, '')
   if (!cleaned) return null
