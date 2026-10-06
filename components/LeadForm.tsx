@@ -289,7 +289,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
       const res = await fetch('/api/submit', { method: 'POST', body: fd })
       const data = await res.json()
       if (data.success) {
-        setBanner({ type: 'success', message: 'Lead saved and added to GHL! ✓' })
+        setBanner({ type: 'success', message: data.warning || 'Lead saved and added to GHL! ✓' })
         setForm(emptyForm)
         setSinglePhotos([])
         setSinglePreviews([])
@@ -297,7 +297,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
         setEmailType('met_dm')
         setEmailSubject('')
         setEmailBody('')
-        setTimeout(() => { setBanner(null); onBack() }, 2000)
+        setTimeout(() => { setBanner(null); onBack() }, data.warning ? 3500 : 2000)
       } else {
         setBanner({ type: 'error', message: data.error || 'Something went wrong.' })
       }

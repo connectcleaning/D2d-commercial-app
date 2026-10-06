@@ -60,14 +60,23 @@ export async function POST(req: NextRequest) {
       if (f && f.size > 0) photoFiles.push(f)
     }
 
-    // Extract from all photos in parallel, merge results (first non-null value wins)
+    // Extract from all photos in parallel, merge results (first non-null value wins).
+    // Photo reading is best-effort: if the AI service is down or out of credits,
+    // we still save the lead from whatever the rep entered manually.
     let ai: CardData = {}
+    let photoReadFailed = false
     if (photoFiles.length > 0) {
       const results = await Promise.all(photoFiles.map(async (file) => {
-        const bytes = await file.arrayBuffer()
-        const base64 = Buffer.from(bytes).toString('base64')
-        const mediaType = file.type || 'image/jpeg'
-        return parseBusinessCard(base64, mediaType)
+        try {
+          const bytes = await file.arrayBuffer()
+          const base64 = Buffer.from(bytes).toString('base64')
+          const mediaType = file.type || 'image/jpeg'
+          return await parseBusinessCard(base64, mediaType)
+        } catch (err) {
+          console.error('[submit] photo parse failed', err)
+          photoReadFailed = true
+          return {} as CardData
+        }
       }))
       // Merge: first non-null value across all photos wins
       for (const result of results) {
@@ -217,7 +226,13 @@ export async function POST(req: NextRequest) {
 
     if (business_id) await updateGhlVisitCount(business_id)
 
-    return NextResponse.json({ success: true, contactId })
+    return NextResponse.json({
+      success: true,
+      contactId,
+      warning: photoReadFailed
+        ? "Saved, but the photo couldn't be read automatically — double-check the fields."
+        : undefined,
+    })
   } catch (err: any) {
     console.error('[submit]', err)
     return NextResponse.json({ success: false, error: err.message }, { status: 500 })
