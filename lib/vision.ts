@@ -37,8 +37,12 @@ export async function parseBusinessCard(imageBase64: string, mediaType: string):
 
 async function _parseBusinessCard(imageBase64: string, mediaType: string): Promise<CardData> {
   const response = await anthropic.messages.create({
-    model: 'claude-opus-4-8',
-    max_tokens: 1024,
+    model: 'claude-haiku-5-5',
+    max_tokens: 2048,
+    // Disable thinking for fast, deterministic OCR (parity with the prior Opus call,
+    // which ran without thinking). Injected via spread because the pinned SDK's types
+    // predate the `thinking` param; the field is still sent in the request body.
+    ...({ thinking: { type: 'disabled' } } as object),
     messages: [{
       role: 'user',
       content: [
