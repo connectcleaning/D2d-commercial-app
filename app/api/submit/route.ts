@@ -230,7 +230,7 @@ export async function POST(req: NextRequest) {
       success: true,
       contactId,
       warning: photoReadFailed
-        ? "Saved, but the photo couldn't be read automatically — double-check the fields."
+        ? 'Saved. Auto-fill from the photo is temporarily unavailable — please enter the details manually.'
         : undefined,
     })
   } catch (err: any) {
