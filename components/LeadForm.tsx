@@ -176,6 +176,8 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
   const [singlePreviews, setSinglePreviews] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [banner, setBanner] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [singleAnalyzing, setSingleAnalyzing] = useState(false)
+  const [extractNote, setExtractNote] = useState<string | null>(null)
 
   // Bulk mode
   const [bulkItems, setBulkItems] = useState<BulkItem[]>([])
@@ -200,6 +202,49 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
     e.target.value = ''
     setSinglePhotos(prev => [...prev, ...files])
     setSinglePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))])
+    analyzeSinglePhotos(files)
+  }
+
+  // Read the just-added photo(s) and auto-fill any still-empty fields, so the
+  // rep can review/edit before submitting. Never overwrites what they typed.
+  async function analyzeSinglePhotos(files: File[]) {
+    setExtractNote(null)
+    setSingleAnalyzing(true)
+    try {
+      const results = await Promise.all(files.map(async (file) => {
+        const fd = new FormData()
+        fd.append('photo', file)
+        const res = await fetch('/api/extract', { method: 'POST', body: fd })
+        return res.ok ? await res.json() : {}
+      }))
+
+      const merged: Record<string, string> = {}
+      for (const r of results) {
+        if (!r || r.error) continue
+        for (const key of Object.keys(r)) {
+          if (!merged[key] && r[key]) merged[key] = r[key]
+        }
+      }
+
+      const fields: (keyof SingleForm)[] = [
+        'business_name', 'decision_maker_name', 'email', 'title',
+        'phone', 'address', 'city', 'state', 'zip', 'notes',
+      ]
+      setForm(prev => {
+        const next = { ...prev }
+        for (const f of fields) {
+          if (!next[f] && merged[f]) next[f] = merged[f]
+        }
+        return next
+      })
+
+      const gotSomething = Object.keys(merged).length > 0
+      if (!gotSomething) setExtractNote("Couldn't auto-fill from the photo — enter the details manually.")
+    } catch {
+      setExtractNote("Couldn't auto-fill from the photo — enter the details manually.")
+    } finally {
+      setSingleAnalyzing(false)
+    }
   }
 
   function removeSinglePhoto(index: number) {
@@ -277,7 +322,8 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
     setBanner(null)
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => fd.append(k, v))
-    singlePhotos.forEach((photo, i) => fd.append(`photo_${i}`, photo))
+    // Photos were already read on upload and reviewed here, so we don't re-send
+    // them — that avoids a second AI read of the same card.
     if (lat !== null) fd.append('lat', String(lat))
     if (lng !== null) fd.append('lng', String(lng))
     fd.append('send_email', sendEmail ? 'true' : 'false')
@@ -293,6 +339,7 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
         setForm(emptyForm)
         setSinglePhotos([])
         setSinglePreviews([])
+        setExtractNote(null)
         setSendEmail(false)
         setEmailType('met_dm')
         setEmailSubject('')
@@ -583,6 +630,19 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
         )}
       </div>
 
+      {singleAnalyzing && (
+        <p className="text-sm text-blue-700 flex items-center gap-2">
+          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 8 4.673 8 12h4z" />
+          </svg>
+          Reading photo &amp; filling in the fields…
+        </p>
+      )}
+      {!singleAnalyzing && extractNote && (
+        <p className="text-sm text-amber-600">{extractNote}</p>
+      )}
+
       <form onSubmit={handleSingleSubmit} className="space-y-4">
         <div>
           <label className={labelClass}>Lead Status</label>
@@ -701,9 +761,9 @@ P.S. We're rated 5 stars on Google with over 130 reviews!`)
           )}
         </div>
 
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || singleAnalyzing}
           className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold text-lg py-4 rounded-xl transition-colors">
-          {loading ? (
+          {singleAnalyzing ? 'Reading photo…' : loading ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
